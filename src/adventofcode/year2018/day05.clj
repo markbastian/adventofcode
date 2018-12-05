@@ -7,6 +7,14 @@
 (def cancellable-pairs
   (set (for [i (range 0 26) :let [l (char (+ i (int \a))) L (char (+ i (int \A)))]] #{l L})))
 
+(defn simplify-stack[input]
+  (loop[[f & r] input res []]
+  (if f
+    (if (cancellable-pairs (cond-> #{f} (peek res) (conj (peek res))))
+      (recur r (pop res))
+      (recur r (conj res f)))
+    res)))
+
 (defn simplify-once [input]
   (loop [[f & r] input res []]
     (if (seq r)
