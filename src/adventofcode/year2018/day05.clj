@@ -5,15 +5,7 @@
 (def input "dabAcCaCBAcCcaDA")
 
 (def cancellable-pairs
-  (set (for [i (range 0 26) :let [l (char (+ i (int \a))) L (char (+ i (int \A)))]] #{l L})))
-
-(defn simplify-stack[input]
-  (loop[[f & r] input res []]
-  (if f
-    (if (cancellable-pairs (cond-> #{f} (peek res) (conj (peek res))))
-      (recur r (pop res))
-      (recur r (conj res f)))
-    res)))
+  (set (for [i (range 26) :let [l (char (+ i (int \a))) L (char (+ i (int \A)))]] #{l L})))
 
 (defn simplify-once [input]
   (loop [[f & r] input res []]
@@ -23,13 +15,13 @@
         (recur r (conj res f)))
       (cs/join (cond-> res f (conj f))))))
 
-(defn simplify [s]
+(defn brute-force-simplify [s]
   (->> (iterate simplify-once s)
        (partition 2 1)
        (drop-while (fn [[a b]] (not= a b)))
        ffirst))
 
-(defn simplify-2
+(defn simplify-indexes
   ([s i]
    (if-some [a (get s i)]
      (let [b (get s (inc i))
@@ -40,41 +32,50 @@
            (recur (str pre post) (max 0 (dec i))))
          (recur s (inc i))))
      s))
-  ([s] (simplify-2 s 0)))
+  ([s] (simplify-indexes s 0)))
+
+(defn simplify-stack [input]
+  (loop [[f & r] input stack []]
+    (if f
+      (let [t (peek stack) pr (cond-> #{f} t (conj t))]
+        (recur r (if (cancellable-pairs pr) (pop stack) (conj stack f))))
+      (cs/join stack))))
 
 (comment
-  ;This is way faster
-  (->> "adventofcode/year2018/day05/input.txt"
-       io/resource
-       slurp
-       simplify-2
-       count))
-
-(comment
-  "dabCBAcaDA"
-  (simplify input)
+  (= "dabCBAcaDA"
+     (brute-force-simplify input)
+     (simplify-indexes input)
+     (simplify-stack input))
   ;9154
-  (->> "adventofcode/year2018/day05/input.txt"
-       io/resource
-       slurp
-       simplify
-       count))
+  (->> "adventofcode/year2018/day05/input.txt" io/resource slurp brute-force-simplify count)
+  ;This is way faster
+  (time (->> "adventofcode/year2018/day05/input.txt" io/resource slurp simplify-indexes count))
+  ;This is way, way faster
+  (time (->> "adventofcode/year2018/day05/input.txt" io/resource slurp simplify-stack count)))
 
-(defn pair-simplifier [input]
+
+(defn brute-force-pair-simplifier [input]
   (zipmap
     cancellable-pairs
-    (pmap (fn [pr] (count (simplify (remove pr input)))) cancellable-pairs)))
+    (pmap (fn [pr] (count (brute-force-simplify (remove pr input)))) cancellable-pairs)))
 
-(defn pair-simplifier-2 [input]
+(defn index-pair-simplifier [input]
   (zipmap
     cancellable-pairs
-    (pmap (fn [pr] (count (simplify-2 (cs/join (remove pr input))))) cancellable-pairs)))
+    (pmap (fn [pr] (count (simplify-indexes (cs/join (remove pr input))))) cancellable-pairs)))
+
+(defn stack-pair-simplifier [input]
+  (zipmap
+    cancellable-pairs
+    (pmap (fn [pr] (count (simplify-stack (cs/join (remove pr input))))) cancellable-pairs)))
 
 (comment
-  (pair-simplifier input)
-  (->> "adventofcode/year2018/day05/input.txt" io/resource slurp pair-simplifier)
+  (brute-force-pair-simplifier input)
+  (->> "adventofcode/year2018/day05/input.txt" io/resource slurp brute-force-pair-simplifier)
   ;Much faster
-  (->> "adventofcode/year2018/day05/input.txt" io/resource slurp pair-simplifier-2))
+  (->> "adventofcode/year2018/day05/input.txt" io/resource slurp index-pair-simplifier)
+  ;By far the fastest
+  (->> "adventofcode/year2018/day05/input.txt" io/resource slurp stack-pair-simplifier))
 
 {#{\D \d} 8780
  #{\B \b} 8806
