@@ -1,7 +1,8 @@
 (ns adventofcode.year2018.day06
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.data :refer [diff]]))
+            [clojure.data :refer [diff]]
+            [clojure.pprint :as pp]))
 
 (def input
   "1, 1
@@ -48,9 +49,43 @@
          (partition 20 1)
          (some (fn [v] (when (apply = v) (first v)))))))
 
-(defn dist [[a b] [c d]]
+(defn manhattan-dist [[a b] [c d]]
   (+ (Math/abs ^int (- a c))
      (Math/abs ^int (- b d))))
+
+(defn assign-group [grp]
+  (let [[a b] (distinct (map second grp))]
+    (if b '. a)))
+
+(defn step1 [{:keys [frontier visited]}]
+  (let [new-visited (into visited frontier)
+        new-frontier (for [[k v] frontier n (neighbors k)
+                           :when (not (new-visited n))] [n v])]
+    {:frontier (->> new-frontier
+                    (group-by first)
+                    (map (fn [[k v]] [k (assign-group v)])))
+     :visited  new-visited}))
+
+(defn group-frequencies [v] (frequencies (map second v)))
+
+;TODO - Better understand the stopping criteria.
+(comment
+  (->> {:frontier (zipmap (->> "adventofcode/year2018/day06/input.txt"
+                               io/resource
+                               slurp
+                               input->pts)
+                          (range))
+        :visited  {}}
+       (iterate step1)
+       (map :visited)
+       (drop 55)
+       (map group-frequencies)
+       (take 1)
+       (map (fn [m] (get m 4)))
+       ;first
+       ;(map second)
+       ;frequencies
+       ))
 
 (comment
   (solution input)
@@ -58,12 +93,18 @@
   (->> "adventofcode/year2018/day06/input.txt" io/resource slurp solution))
 
 (defn roi-step [{:keys [frontier visited]}]
-  (let [new-frontier (distinct (remove visited (mapcat neighbors frontier)))]
+  (let [new-visited (into visited frontier)
+        new-frontier (distinct (remove new-visited (mapcat neighbors frontier)))]
     {:frontier new-frontier
-     :visited  (into visited frontier)}))
+     :visited  new-visited}))
+
+(defn centroid [pts]
+  (->> pts
+       (reduce (fn [a b] (map + a b)))
+       (mapv #(quot % (count pts)))))
 
 (defn total-dist [c pts]
-  (reduce + (for [p pts] (dist p c))))
+  (reduce + (for [p pts] (manhattan-dist p c))))
 
 (defn filter-frontier [pts tol frontier]
   (->> frontier
@@ -71,10 +112,8 @@
        (filter (fn [d] (< d tol)))))
 
 (defn region-size [tol input]
-  (let [pts (input->pts input)
-        s (reduce (fn [a b] (map + a b)) pts)
-        c (mapv #(quot % (count pts)) s)]
-    (->> {:frontier [c] :visited #{}}
+  (let [pts (input->pts input)]
+    (->> {:frontier [(centroid pts)] :visited #{}}
          (iterate roi-step)
          (map :frontier)
          (map (partial filter-frontier pts tol))
