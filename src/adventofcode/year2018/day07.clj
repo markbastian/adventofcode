@@ -1,6 +1,7 @@
 (ns adventofcode.year2018.day07
   (:require [clojure.string :as cs]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.set :as s]))
 
 (def input
   "Step C must be finished before step A can begin.
@@ -38,9 +39,48 @@ Step F must be finished before step E can begin.")
   ;"AHJDBEMNFQUPVXGCTYLWZKSROI"
   (->> "adventofcode/year2018/day07/input.txt" io/resource slurp order))
 
+(defn job-map [input]
+  (letfn [(add-job [m [k v]] (-> m (update k conj v) (update v identity)))]
+    (reduce add-job {} (parse input))))
+
 (def durations
   (zipmap
     (map str "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     (map #(inc (+ 60 %)) (range))))
 
-(defn work-step [{:keys [jobs]}])
+(defn duration [job]
+  (+ 60 (inc (apply - (map int (str job "A"))))))
+
+(defn job-status [{:keys [progress duration]}]
+  (if (>= progress duration) :complete :incomplete))
+
+(defn complete-jobs [{:keys [job-queue active-jobs] :as m}]
+  (let [{:keys [complete incomplete]} (group-by job-status active-jobs)
+        complete-ids (reduce dissoc job-queue (map :job complete))]
+    (-> m
+        (assoc :active-jobs incomplete)
+        (update :idle-workers into (map :worker complete))
+        (assoc :job-queue complete-ids))))
+
+(defn advance-time [m]
+  (letfn [(advance-job [j] (update j :progress inc))]
+    (update m :active-jobs #(map advance-job %))))
+
+(defn assign-work [{:keys [job-queue idle-workers] :as m}]
+  (letfn [(create-job [w j] (zipmap [:worker :job :progress :duration] [w j 0 (duration j)]))]
+    (let [blocked-jobs (distinct (mapcat second job-queue))
+          unblocked-jobs (keys (reduce #(dissoc %1 %2) job-queue blocked-jobs))
+          new-jobs (map create-job idle-workers unblocked-jobs)]
+      (-> m
+          (assoc :active-jobs new-jobs)
+          (update :idle-workers s/difference (set (map :worker new-jobs)))))))
+
+(defn work-step [m]
+  (-> m
+      advance-time
+      assign-work
+      complete-jobs))
+
+(->> {:job-queue (job-map input) :idle-workers (set (range 6))}
+     (iterate work-step)
+     (take 20))
