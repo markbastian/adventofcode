@@ -43,13 +43,8 @@ Step F must be finished before step E can begin.")
   (letfn [(add-job [m [k v]] (-> m (update k conj v) (update v identity)))]
     (reduce add-job {} (parse input))))
 
-(def durations
-  (zipmap
-    (map str "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    (map #(inc (+ 60 %)) (range))))
-
-(defn duration [job]
-  (+ 60 (inc (apply - (map int (str job "A"))))))
+(defn duration [fixed-job-cost job]
+  (+ fixed-job-cost (inc (apply - (map int (str job "A"))))))
 
 (defn job-status [{:keys [progress duration]}]
   (if (>= progress duration) :complete :incomplete))
@@ -63,24 +58,40 @@ Step F must be finished before step E can begin.")
         (assoc :job-queue complete-ids))))
 
 (defn advance-time [m]
-  (letfn [(advance-job [j] (update j :progress inc))]
+  (letfn [(advance-job [job] (update job :progress inc))]
     (update m :active-jobs #(map advance-job %))))
 
-(defn assign-work [{:keys [job-queue idle-workers] :as m}]
-  (letfn [(create-job [w j] (zipmap [:worker :job :progress :duration] [w j 0 (duration j)]))]
+(defn assign-work [fixed-job-cost {:keys [job-queue active-jobs idle-workers] :as m}]
+  (letfn [(create-job [w j] (zipmap [:worker :job :progress :duration] [w j 0 (duration fixed-job-cost j)]))]
     (let [blocked-jobs (distinct (mapcat second job-queue))
-          unblocked-jobs (keys (reduce #(dissoc %1 %2) job-queue blocked-jobs))
+          current-jobs (set (map :job active-jobs))
+          unblocked-jobs (remove current-jobs (keys (reduce #(dissoc %1 %2) job-queue blocked-jobs)))
           new-jobs (map create-job idle-workers unblocked-jobs)]
       (-> m
-          (assoc :active-jobs new-jobs)
+          (update :active-jobs into new-jobs)
           (update :idle-workers s/difference (set (map :worker new-jobs)))))))
 
-(defn work-step [m]
-  (-> m
-      advance-time
-      assign-work
-      complete-jobs))
+(defn work-step [fixed-job-cost m]
+  (->> m
+       advance-time
+       complete-jobs
+       (assign-work fixed-job-cost)))
 
-(->> {:job-queue (job-map input) :idle-workers (set (range 6))}
-     (iterate work-step)
-     (take 20))
+(defn job-seq [fixed-job-cost n-workers input]
+  (->> {:job-queue (job-map input) :idle-workers (set (range n-workers))}
+       (iterate (partial work-step fixed-job-cost))
+       rest
+       (map (fn [{:keys [active-jobs]}] (map :job active-jobs)))
+       (take-while seq)))
+
+(defn job-duration [fixed-job-cost n-workers input]
+  (count (job-seq fixed-job-cost n-workers input)))
+
+(comment
+  ;15
+  (job-duration 0 2 input)
+  ;1031
+  (->> "adventofcode/year2018/day07/input.txt"
+       io/resource
+       slurp
+       (job-duration 60 5)))
