@@ -32,6 +32,18 @@
   (meta-sum (parse-input input))
   (->> "adventofcode/year2018/day08/input.txt" io/resource slurp parse-input meta-sum))
 
+
+(let [input (parse-input input)]
+  (loop [[nc nm & r] input [[a b] & ops :as stack] nil curr [[]]]
+  (cond
+    (nil? nc) curr
+    (zero? nc) (let [[meta r] (split-at nm r)]
+                 (recur
+                   r
+                   ops
+                   (conj (pop curr) (conj peek (reduce + meta)))))
+    :else (recur r (conj stack [nc nm]) (conj curr [])))))
+
 (defn total-meta [[ids :as v]]
   (cond
     (nil? ids) 0
