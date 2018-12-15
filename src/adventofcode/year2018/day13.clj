@@ -55,8 +55,8 @@
                       [\^ \\] \<
                       dir))))
 
-(defn remove-crashes [m]
-  (dissoc m :crashes))
+(defn remove-crashes [{:keys [queue] :as m}]
+  (cond-> m (empty? queue) (dissoc :crashes)))
 
 (defn car-step [{:keys [cars track crashes] [f & r] :queue :as m}]
   (if f
