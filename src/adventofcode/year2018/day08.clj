@@ -1,6 +1,7 @@
 (ns adventofcode.year2018.day08
   (:require [clojure.edn :as edn]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.core.async :as async]))
 
 ;2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2
 ;A----------------------------------
@@ -11,8 +12,6 @@
 
 (defn parse-input [s]
   (edn/read-string (str "[" s "]")))
-
-(parse-input input)
 
 (defn compute-meta [input]
   (loop [[nc nm & r] input [[a b] & ops :as stack] nil sums []]
@@ -26,68 +25,28 @@
 (defn meta-sum [input]
   (->> input compute-meta flatten (reduce +)))
 
-(compute-meta (parse-input input))
-
 (comment
   (meta-sum (parse-input input))
   (->> "adventofcode/year2018/day08/input.txt" io/resource slurp parse-input meta-sum))
 
+(defn parse-tree [c]
+  (let [nc (async/<!! c) nm (async/<!! c)]
+    {:children (vec (repeatedly nc #(parse-tree c)))
+     :meta     (vec (repeatedly nm #(async/<!! c)))}))
 
-(let [input (parse-input input)]
-  (loop [[nc nm & r] input [[a b] & ops :as stack] nil curr [[]]]
-  (cond
-    (nil? nc) curr
-    (zero? nc) (let [[meta r] (split-at nm r)]
-                 (recur
-                   r
-                   ops
-                   (conj (pop curr) (conj peek (reduce + meta)))))
-    :else (recur r (conj stack [nc nm]) (conj curr [])))))
+(defn node-seq [{:keys [children meta]}]
+  (if (seq children)
+    (mapcat (comp node-seq #(get children %) dec) meta)
+    meta))
 
-(defn total-meta [[ids :as v]]
-  (cond
-    (nil? ids) 0
-    (seq ids) (reduce + (map #(total-meta (get v %)) ids))
-    :else (reduce + (flatten v))))
+(defn part2 [m] (reduce + (node-seq m)))
 
-(let [input (parse-input input)]
-  (loop [[num-children num-meta & r :as s] input
-         [[remaining-children pushed-meta] & ops :as stack] []
-         sums []]
-    (prn {:s s :stack stack :sum sums})
-    (cond
-      (nil? num-children) sums
-
-      (some-> remaining-children zero?)
-      (let [c (peek sums)
-            x (pop sums)
-            ops (if-some [[a b] (peek ops)] (conj (pop ops) [(dec a) b]) ops)
-            [meta r] (split-at pushed-meta s)]
-        (recur
-          r
-          ops
-          (conj x (into [(vec meta)] c))))
-
-      (zero? num-children)
-      (let [[meta r] (split-at num-meta r)
-            c (peek sums)
-            x (pop sums)]
-        (recur
-          r
-          (conj ops [(dec remaining-children) pushed-meta])
-          (conj x (conj c [[] (vec meta)]))))
-
-      :else (recur r (conj stack [num-children num-meta]) (conj sums [])))))
-
-(def res
-  [[1 1 2]
-   [[] [10 11 12]]
-   [[2]
-    [[] [99]]]])
-
-(defn doit [[nc nm & r]]
-  (if (zero? nc)
-    (let [[meta & r] (split-at nm r)]
-      [[[] meta] r])
-    (let [[r] (take nm (doit r))]
-      [meta c])))
+(comment
+  (->> input parse-input async/to-chan parse-tree part2)
+  (->> "adventofcode/year2018/day08/input.txt"
+       io/resource
+       slurp
+       parse-input
+       async/to-chan
+       parse-tree
+       part2))
