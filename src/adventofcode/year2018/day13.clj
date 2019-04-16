@@ -4,25 +4,25 @@
 
 (defn split-cars [s]
   (reduce
-    (fn [m [c spc]]
+    (fn [m [coord spc]]
       (case spc
         (\> \<) (-> m
-                    (assoc-in [:cars c] {:dir spc :turn :left})
-                    (assoc-in [:track c] \-))
+                    (assoc-in [:cars coord] {:dir spc :turn :left})
+                    (assoc-in [:track coord] \-))
         (\^ \v) (-> m
-                    (assoc-in [:cars c] {:dir spc :turn :left})
-                    (assoc-in [:track c] \|))
-        (assoc-in m [:track c] spc)))
+                    (assoc-in [:cars coord] {:dir spc :turn :left})
+                    (assoc-in [:track coord] \|))
+        (assoc-in m [:track coord] spc)))
     {:cars {} :track {}}
     s))
 
 (defn parse-input [f]
   (let [lines (->> f io/resource slurp cs/split-lines vec)]
     (split-cars
-      (for [r (range (count lines)) :let [line (into [] (lines r))]
-            c (range (count line)) :let [v (line c)]
+      (for [row (range (count lines)) :let [line (into [] (lines row))]
+            col (range (count line)) :let [v (line col)]
             :when ((complement #{\space}) v)]
-        [[r c] v]))))
+        [[row col] v]))))
 
 (def input1 (parse-input "adventofcode/year2018/day13/test_input1.txt"))
 (def input2 (parse-input "adventofcode/year2018/day13/test_input2.txt"))
