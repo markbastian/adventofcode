@@ -3,7 +3,7 @@
             [clojure.string :as cs]))
 
 (defn dir [[x y]]
-  (let [deg (Math/toDegrees (Math/atan2 x y))]
+  (let [deg (Math/toDegrees (Math/atan2 x (- y)))]
     (cond-> deg (neg? deg) (+ 360))))
 
 (defn mag [v]
@@ -12,27 +12,29 @@
 (defn los-vectors [grid]
   (let [all-cells (for [y (range (count grid)) x (range (count (grid y)))] [x y])
         occupied (filter (fn [[x y]] (= \# (get-in grid [y x]))) all-cells)]
-    (for [cell occupied]
-      [cell
-       (->>
-         (for [o occupied
-               :when (not= o cell)
-               :let [v (map - o cell)]]
-           [(dir v) (mag v)])
-         sort
-         (group-by first)
-         sort
-         (map (fn [[k v]] [k (mapv second v)])))])))
+    (into {}
+          (for [cell occupied]
+            [cell
+             (->>
+               (for [o occupied
+                     :when (not= o cell)
+                     :let [v (map - o cell)]]
+                 [(dir v) (mag v) o])
+               sort
+               (group-by first)
+               sort
+               (map (fn [[k v]] [k (map rest v)])))]))))
+
+(defn most-visible [lv]
+  (->> lv
+       (map (fn [[k v]] [k (count v)]))
+       (apply max-key (fn [[_ v]] v))))
 
 (defn part1 [grid]
-  (let [l (los-vectors grid)]
-    (->> l
-         (map (fn [[k v]] [k (count v)]))
-         (apply max-key (fn [[_ v]] v)))))
+  (most-visible (los-vectors grid)))
 
 (defn skim [v]
-  (prn v)
-  (mapv (fn [[k [s]]] k) v))
+  (mapv (fn [[_ [[_ v]]]] v) v))
 
 (defn strip [v]
   (->> v
@@ -44,9 +46,11 @@
 
 (defn part2 [grid]
   (let [l (los-vectors grid)
-        best (->> l (map (fn [[k v]] [k (count v)])) (apply max-key (fn [[_ v]] v)) first)
-        best-grid (some (fn [[k v]] (when (= k best) v)) l)]
-    (step [[] best-grid])))
+        best (->> l most-visible first l)]
+    (->> [[] best]
+         (iterate step)
+         (remove (comp seq second))
+         ffirst)))
 
 (comment
   (los-vectors (->> (io/resource "adventofcode/year2019/day10/input0.txt") slurp cs/split-lines))
@@ -59,4 +63,11 @@
   (= [[11 13] 210] (part1 (->> (io/resource "adventofcode/year2019/day10/input4.txt") slurp cs/split-lines)))
   (= [[23 20] 334] (part1 (->> (io/resource "adventofcode/year2019/day10/input5.txt") slurp cs/split-lines)))
 
+  (let [res (part2 (->> (io/resource "adventofcode/year2019/day10/input4.txt") slurp cs/split-lines))]
+    (and
+      (= [11 12] (first res))
+      (= [11 1] (last res))))
+
+  (let [[x y] (nth (part2 (->> (io/resource "adventofcode/year2019/day10/input5.txt") slurp cs/split-lines)) 199)]
+    (= 1119 (+ (* 100 x) y)))
   )
