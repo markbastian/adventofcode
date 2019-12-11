@@ -19,10 +19,10 @@
 (def input (-> "adventofcode/year2018/day12/input.txt" io/resource slurp read-input))
 
 (defn step [[n s f]]
-  (let [s (partition 5 1 (seq (format "...%s..." s)))]
-    [(dec n) (cs/join (map #(if (f %) \# \.) s)) f]))
-
-;(count (step input1))
+  (let [s (partition 5 1 (seq (format "...%s..." s)))
+        r (cs/join (map #(if (f %) \# \.) s))
+        [_ pre pots] (re-matches #"(\.*)(.+?)\.*" r)]
+    [(+ (dec n) (count pre)) pots f]))
 
 (defn compute [ngens input]
   (->> (iterate step input)
@@ -31,15 +31,32 @@
        (map #(reduce + %))
        last))
 
-(compute 20 input1)
-(compute 20 input)
+(defn compute2 [ngens input]
+  (let [[n s] (nth (iterate step input) ngens)
+        v (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)]
+    (reduce + v)))
+
+(defn compute3 [input]
+  (->> (iterate step input)
+       (map (fn [[n s]] (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)))))
+
+(comment
+  (compute 20 input1)
+  (compute 20 input)
+
+  (->> (iterate step input)
+       (map-indexed (fn [i [n s]] [i (reduce + (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s))]))
+       (take 301))
+
+
+  ;(compute2 50000000000N input)
+  )
 ;(compute 50000000000 input)
 
-#_
-(->> (iterate step input)
-     (take (inc 50))
-     (map (fn [[n s]] (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)))
-     (map #(reduce + %))
-     (partition 2 1)
-     (map (fn [[a b]] (- a b)))
-     frequencies)
+#_(->> (iterate step input)
+       (take (inc 50))
+       (map (fn [[n s]] (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)))
+       (map #(reduce + %))
+       (partition 2 1)
+       (map (fn [[a b]] (- a b)))
+       frequencies)
