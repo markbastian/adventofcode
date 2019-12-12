@@ -31,32 +31,19 @@
        (map #(reduce + %))
        last))
 
-(defn compute2 [ngens input]
-  (let [[n s] (nth (iterate step input) ngens)
-        v (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)]
-    (reduce + v)))
-
-(defn compute3 [input]
-  (->> (iterate step input)
-       (map (fn [[n s]] (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)))))
-
 (comment
   (compute 20 input1)
   (compute 20 input)
 
   (->> (iterate step input)
        (map-indexed (fn [i [n s]] [i (reduce + (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s))]))
-       (take 301))
-
-
-  ;(compute2 50000000000N input)
-  )
-;(compute 50000000000 input)
-
-#_(->> (iterate step input)
-       (take (inc 50))
-       (map (fn [[n s]] (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s)))
-       (map #(reduce + %))
+       (take 301)
        (partition 2 1)
-       (map (fn [[a b]] (- a b)))
-       frequencies)
+       (map (fn [[[x0 y0] [x1 y1]]]
+              (let [m (/ (- y1 y0) (- x1 x0))
+                    b (- y0 ( * m x0))]
+                {:x0 x0 :y0 y0 :x1 x1 :y1 y1 :m m :b b}))))
+
+  ;Part 2 solution
+  (= 4350000000957 (+ (* 87 50000000000) 957))
+  )
