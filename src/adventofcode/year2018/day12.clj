@@ -37,12 +37,14 @@
 
   (->> (iterate step input)
        (map-indexed (fn [i [n s]] [i (reduce + (map (fn [i s] (if (= \# s) i 0)) (iterate inc n) s))]))
-       (take 301)
        (partition 2 1)
        (map (fn [[[x0 y0] [x1 y1]]]
               (let [m (/ (- y1 y0) (- x1 x0))
                     b (- y0 ( * m x0))]
-                {:x0 x0 :y0 y0 :x1 x1 :y1 y1 :m m :b b}))))
+                {:x0 x0 :y0 y0 :x1 x1 :y1 y1 :m m :b b})))
+       (partition 2 1)
+       (remove (fn [[a b]] (not= (select-keys a [:m :b]) (select-keys b [:m :b]))))
+       ffirst)
 
   ;Part 2 solution
   (= 4350000000957 (+ (* 87 50000000000) 957))
