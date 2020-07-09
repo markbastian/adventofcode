@@ -1,27 +1,32 @@
 (ns adventofcode.year2017.day06)
 
-(def input [0 2 7 0])
+(def test-input [0 2 7 0])
+
+(defn pair-to-spread [input]
+  (let [[f & r] (map vector (range) input)]
+    (reduce (fn [[_ v0 :as a] [_ v1 :as b]] (if (> v1 v0) b a)) f r)))
 
 (defn step [input]
-  (let [[f & r] (map vector (range) input)
-        [s n] (reduce (fn [[_ v0 :as a] [_ v1 :as b]] (if (> v1 v0) b a)) f r)]
-    (reduce #(update %1 %2 inc) (assoc input s 0) (map #(mod (inc (+ s %)) (count input)) (range 0 n)))))
+  (let [[spread-index blocks] (pair-to-spread input)]
+    (letfn [(wrap-index [i] (mod (inc (+ spread-index i)) (count input)))]
+      (reduce
+        (fn [banks i] (update banks i inc))
+        (assoc input spread-index 0)
+        (map wrap-index (range 0 blocks))))))
 
 (defn cycle-map [input]
-  (->> (iterate step input)
-       (partition 2 1)
-       (reductions
-         (fn [m [k v]]
-           (if (m k) (reduced m) (assoc m k v)))
-         {})
-       last))
+  (letfn [(reducer [m [k v]] (if (m k) (reduced m) (assoc m k v)))]
+    (->> (iterate step input)
+         (partition 2 1)
+         (reductions reducer {})
+         last)))
 
 (defn cycle-count [input]
   (->> input cycle-map count))
 
 (comment
   ;5
-  (cycle-count input))
+  (cycle-count test-input))
 
 (comment
   ;4074
@@ -35,5 +40,6 @@
     (count (cons f (take-while (complement #{f}) r)))))
 
 (comment
+  (cycle-count-2 test-input)
   ;2793
   (cycle-count-2 [11 11 13 7 0 15 5 5 4 4 1 1 7 1 15 11]))
