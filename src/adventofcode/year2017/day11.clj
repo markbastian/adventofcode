@@ -24,7 +24,7 @@
 (defn str->ops [s]
   (map coords (cs/split s #",")))
 
-(defn step1 [s]
+(defn final-distance [s]
   (cube-dist [0 0] (reduce (fn [c op] (op c)) [0 0] (str->ops s))))
 
 (defn path [s]
@@ -37,11 +37,11 @@
 
 (comment
   ;Part 1
-  (= 3 (step1 "ne,ne,ne"))
-  (= 0 (step1 "ne,ne,sw,sw"))
-  (= 2 (step1 "ne,ne,s,s"))
-  (= 3 (step1 "se,sw,se,sw,sw"))
-  (= 810 (step1 input))
+  (= 3 (final-distance "ne,ne,ne"))
+  (= 0 (final-distance "ne,ne,sw,sw"))
+  (= 2 (final-distance "ne,ne,s,s"))
+  (= 3 (final-distance "se,sw,se,sw,sw"))
+  (= 810 (final-distance input))
 
   ;Part 2
   (= 1567 (furthest-distance (path input))))
