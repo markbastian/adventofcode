@@ -12,7 +12,7 @@
 {{<!!>},{<!!>},{<!!>},{<!!>}}
 {{<a!>},{<a!>},{<a!>},{<ab>}}")
 
-(defn step [{:keys [input stack garbage] :as m}]
+(defn step [{:keys [input stack] :as m}]
   (let [t (peek stack)
         [f] input
         m (update m :input rest)]
@@ -25,13 +25,7 @@
         \! (update m :input rest)
         (\{ \<) (update m :stack conj f)
         \} (-> m (update :stack pop) (update :score + (count stack)))
-        m))
-    #_(case f
-        \! (update m :input rest)
-        (\{ \<) (cond-> m (not= \< t) (update :stack conj f))
-        \> (cond-> m (= \< t) (update :stack pop))
-        \} (cond-> m (not= \< t) (-> (update :stack pop) (update :score + (count stack))))
-        m)))
+        m))))
 
 (defn process [input]
   (->> {:input input :stack [] :score 0 :garbage 0}
