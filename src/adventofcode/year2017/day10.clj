@@ -8,9 +8,7 @@
 
 (defn rev-len [v from len]
   (letfn [(rev-block [v from to]
-            (if (>= from to)
-              v
-              (rev-block (swap-pos v from to) (inc from) (dec to))))]
+            (if (>= from to) v (recur (swap-pos v from to) (inc from) (dec to))))]
     (rev-block v from (dec (+ from len)))))
 
 (defn knot-hash-run-step [[v pos skip] len]
