@@ -79,6 +79,11 @@
 (defn build-tree [db]
   (d/pull db '[:children :name :weight] [:name (root-ds db)]))
 
+(comment
+  ;Note: Could use (s/index (build-data input) [:name]) and just update the children
+  (build-tree (build-db input))
+  (build-tree (build-db test-input)))
+
 (defn compute-total-weights [{:keys [children weight] :as m}]
   (if children
     (let [c (map compute-total-weights children)
@@ -94,6 +99,30 @@
 (comment
   (compute-total-weights (build-tree (build-db input)))
   (compute-total-weights (build-tree (build-db test-input))))
+
+(defn find-imbalance [[tw w]]
+  (let [m (frequencies tw)
+        z (zipmap (vals m) (keys m))
+        outlier (z 1)
+        norm (first (vals (dissoc z 1)))
+        fix (- norm outlier)]
+    (->> (map vector tw w)
+         (some (fn [[a b]] (when (= a outlier) (+ b fix)))))))
+
+(defn part2 [input]
+  (->> input
+       build-db
+       build-tree
+       compute-total-weights
+       :imbalances
+       last
+       find-imbalance))
+
+(comment
+  ;Part 2
+  (part2 input)
+  (part2 test-input)
+  )
 
 (comment
   ;Experimental to see how much can be solved with just datalog
@@ -121,27 +150,3 @@
          (build-db input) (weights input))
        (group-by first)
        (map (fn [[k v]] [k (map rest v)]))))
-
-(defn find-imbalance [[tw w]]
-  (let [m (frequencies tw)
-        z (zipmap (vals m) (keys m))
-        outlier (z 1)
-        norm (first (vals (dissoc z 1)))
-        fix (- norm outlier)]
-    (->> (map vector tw w)
-         (some (fn [[a b]] (when (= a outlier) (+ b fix)))))))
-
-(defn part2 [input]
-  (->> input
-       build-db
-       build-tree
-       compute-total-weights
-       :imbalances
-       last
-       find-imbalance))
-
-(comment
-  ;Part 2
-  (part2 input)
-  (part2 test-input)
-  )

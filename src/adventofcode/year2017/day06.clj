@@ -1,7 +1,5 @@
 (ns adventofcode.year2017.day06)
 
-(def test-input [0 2 7 0])
-
 (defn pair-to-spread [input]
   (let [[f & r] (map vector (range) input)]
     (reduce (fn [[_ v0 :as a] [_ v1 :as b]] (if (> v1 v0) b a)) f r)))
@@ -21,25 +19,24 @@
          (reductions reducer {})
          last)))
 
-(defn cycle-count [input]
-  (->> input cycle-map count))
+(def cycle-count (comp count cycle-map))
+
+(def test-input [0 2 7 0])
+(def final-input [11 11 13 7 0 15 5 5 4 4 1 1 7 1 15 11])
 
 (comment
   ;5
-  (cycle-count test-input))
-
-(comment
+  (cycle-count test-input)
   ;4074
-  (cycle-count
-    [11 11 13 7 0 15 5 5 4 4 1 1 7 1 15 11]))
+  (time (cycle-count final-input)))
 
 (defn cycle-count-2 [input]
   (let [m (cycle-map input)
-        c (some (fn [[k v]] (when (= 2 v) k)) (frequencies (vals m)))
-        [f & r] (iterate m c)]
+        cycle-start (some (fn [[k v]] (when (= 2 v) k)) (frequencies (vals m)))
+        [f & r] (iterate m cycle-start)]
     (count (cons f (take-while (complement #{f}) r)))))
 
 (comment
-  (cycle-count-2 test-input)
+  (time (cycle-count-2 test-input))
   ;2793
-  (cycle-count-2 [11 11 13 7 0 15 5 5 4 4 1 1 7 1 15 11]))
+  (time (cycle-count-2 final-input)))
