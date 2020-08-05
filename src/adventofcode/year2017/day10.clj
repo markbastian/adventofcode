@@ -2,8 +2,7 @@
   (:require [clojure.string :as cs]))
 
 (defn swap-pos [v a b]
-  (let [a (mod a (count v))
-        b (mod b (count v))]
+  (let [c (count v) a (mod a c) b (mod b c)]
     (assoc v a (v b) b (v a))))
 
 (defn rev-len [v from len]

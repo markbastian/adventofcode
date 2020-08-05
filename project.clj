@@ -7,4 +7,5 @@
                  [org.clojure/core.async "0.6.532"]
                  [datascript "0.18.7"]
                  [org.clojure/core.logic "0.8.11"]
-                 [quil "3.1.0"]])
+                 [quil "3.1.0"]
+                 [org.clojure/data.priority-map "1.0.0"]])

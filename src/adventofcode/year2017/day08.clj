@@ -9,6 +9,8 @@ a inc 1 if b < 5
 c dec -10 if a >= 1
 c inc -20 if c == 10")
 
+(def test-input (-> "adventofcode/year2017/day08/input.txt" io/resource slurp))
+
 (def ops {'> > '>= >= '< < '<= <= '== = '!= not= 'inc + 'dec -})
 
 (defn execute-instr [state instr]
@@ -26,20 +28,18 @@ c inc -20 if c == 10")
   (= {:b 0, :a 1, :c -10} (execute-instrs input))
 
   (= 6828
-     (->> "adventofcode/year2017/day08/input.txt"
-          io/resource
-          slurp
-          execute-instrs
-          vals
-          (apply max))))
+     (time
+       (->> test-input
+            execute-instrs
+            vals
+            (apply max)))))
 
 ;part b
 (comment
   (= 7234
-     (->> "adventofcode/year2017/day08/input.txt"
-          io/resource
-          slurp
-          cs/split-lines
-          (reductions execute-instr {})
-          (mapcat vals)
-          (apply max))))
+     (time
+       (->> test-input
+            cs/split-lines
+            (reductions execute-instr {})
+            (mapcat vals)
+            (apply max)))))
