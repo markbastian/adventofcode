@@ -33,7 +33,9 @@
 
 (comment
   (step-1-hash [0 1 2 3 4] [3 4 1 5])
-  (= 13760 (step-1-hash v256 lengths)))
+  (= 13760 (step-1-hash v256 lengths))
+  (time (= 826 (step-1-hash v256 [120 93 0 90 5 80 129 74 1 165 204 255 254 2 50 113])))
+  )
 
 (def suffix [17 31 73 47 23])
 
@@ -68,4 +70,11 @@
   (= "33efeb34ea91902bb2f59c9920caa6cd" (stage-2-hash "AoC 2017"))
   (= "3efbe78a8d82f29979031a4aa0b16a9d" (stage-2-hash "1,2,3"))
   (= "63960835bcdc130f0b66d7ff4f6a5a8e" (stage-2-hash "1,2,4"))
-  (= "2da93395f1a6bb3472203252e3b17fe5" (stage-2-hash (cs/join "," lengths))))
+  (= "2da93395f1a6bb3472203252e3b17fe5" (stage-2-hash (cs/join "," lengths)))
+
+  (time
+    (= "d067d3f14d07e09c2e7308c3926605c4"
+       (stage-2-hash
+         (cs/join "," [120 93 0 90 5 80 129 74 1 165 204 255 254 2 50 113]))))
+
+  )
