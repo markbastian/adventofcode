@@ -1,0 +1,22 @@
+{:paths     ["src" "resources"]
+ :deps      {org.clojure/clojure           {:mvn/version "1.10.0"}
+             org.clojure/core.async        {:mvn/version "1.3.610"}
+             datascript/datascript         {:mvn/version "1.0.0"}
+             org.clojure/data.priority-map {:mvn/version "1.0.0"}}
+
+ :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+             "clojars" {:url "https://repo.clojars.org/"}}
+
+ :aliases   {:test         {:extra-paths ["test" "test-resources"]}
+             :jar          {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}
+                            :main-opts  ["-m" "cambada.jar"
+                                         "-m" "graal.me.maybe.core"]}
+             :uberjar      {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}
+                            :main-opts  ["-m" "cambada.uberjar"
+                                         "-m" "graal.me.maybe.core"]}
+             :cambada      {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}}
+             :native-image {:extra-deps {luchiniatwork/cambada {:mvn/version "1.0.2"}}
+                            :jvm-opts   ["-Xmx2g"]
+                            :main-opts  ["-m" "cambada.native-image"
+                                         "-m" "adventofcode.year2017.day10"
+                                         "--graalvm-home" "/Library/Java/JavaVirtualMachines/graalvm-ce-java11-20.0.0/Contents/Home"]}}}

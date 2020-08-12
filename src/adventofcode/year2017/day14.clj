@@ -8,7 +8,7 @@
     (format "%04d" (Long/parseLong b))))
 
 (defn knot-hash->binary-string [s]
-  (->> s day10/stage-2-hash (map hex-digit->binary-str) cs/join))
+  (->> s day10/dense-hash (map hex-digit->binary-str) cs/join))
 
 (defn disk-grid [hash]
   (for [i (range 128)

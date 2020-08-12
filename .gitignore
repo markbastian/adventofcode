@@ -17,3 +17,4 @@ scratch.clj
 *.log
 *.swp
 .rebel_readline_history
+/.cpcache
