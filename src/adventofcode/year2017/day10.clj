@@ -26,6 +26,11 @@
 (def knot-hash-round (comp last knot-hash-run))
 
 (comment
+  (reductions
+    knot-hash-run-step
+    [[0 1 2 3 4] 0 0]
+    [3 4 1 5])
+
   (knot-hash-run [0 1 2 3 4] [3 4 1 5])
   (knot-hash-round [0 1 2 3 4] [3 4 1 5]))
 
@@ -56,9 +61,9 @@
 ;NOTE - One part of the problem description that is poorly specified is the
 ; vector that is supposed to be iterated on at each step. They have you use the
 ; same output at each step, but it is worded as if you use [0..255] each time.
-(defn stage-2-step [{:keys [res lengths skip pos]
-                     :or   {skip 0 pos 0}
-                     :as   m}]
+(defn dense-hash-step [{:keys [res lengths skip pos]
+                     :or      {skip 0 pos 0}
+                     :as      m}]
   (let [[res pos skip] (knot-hash-round res lengths pos skip)]
     (assoc m :res res :pos pos :skip skip)))
 
@@ -72,9 +77,9 @@
 
 (defn dense-hash [input]
   (->> {:res v256 :lengths (ascii-code-input input)}
-       (iterate stage-2-step)
+       (iterate dense-hash-step)
        rest
-       (pmap (comp hex-hash :res))
+       (map (comp hex-hash :res))
        (take 64)
        last))
 
