@@ -3,6 +3,7 @@
             [clojure.java.io :as io]))
 
 ;See https://github.com/markbastian/hex/blob/master/src/cljc/hex/core.cljc
+; https://www.redblobgames.com/grids/hexagons/
 
 (defn cube "Conform input to cube (3 element) representation of hex coords."
   [[i j k :as c]]
@@ -41,8 +42,8 @@
   (= 0 (final-distance "ne,ne,sw,sw"))
   (= 2 (final-distance "ne,ne,s,s"))
   (= 3 (final-distance "se,sw,se,sw,sw"))
-  (= 810 (final-distance input))
+  (time (= 810 (final-distance input)))
 
   ;Part 2
-  (= 1567 (furthest-distance (path input))))
+  (time (= 1567 (furthest-distance (path input)))))
 
