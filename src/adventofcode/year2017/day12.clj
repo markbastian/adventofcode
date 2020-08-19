@@ -28,7 +28,7 @@
           (update :frontier (fn [f] (into (pop f) new-neighbors)))
           (update :visited into (zipmap new-neighbors (repeat current-pos)))))))
 
-(defn dfs [start input-map]
+(defn bfs [start input-map]
   (->> {:frontier     (conj empty-queue start)
         :neighbors-fn input-map
         :visited      {start nil}}
@@ -37,7 +37,7 @@
        (map :visited)))
 
 (defn reachable-group [start input-map]
-  (->> (dfs start input-map) last keys set))
+  (->> (bfs start input-map) last keys set))
 
 (comment
   (= 6 (count (reachable-group "0" example-input)))
