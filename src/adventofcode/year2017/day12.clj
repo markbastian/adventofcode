@@ -39,10 +39,6 @@
 (defn reachable-group [start input-map]
   (->> (bfs start input-map) last keys set))
 
-(comment
-  (= 6 (count (reachable-group "0" example-input)))
-  (= 175 (count (reachable-group "0" input))))
-
 (defn groups [input-map]
   (loop [m input-map res []]
     (if-some [k (ffirst m)]
@@ -51,8 +47,8 @@
       res)))
 
 (comment
-  (= 6 (count (reachable-group "0" example-input)))
-  (= 175 (count (reachable-group "0" input)))
+  (time (= 6 (count (reachable-group "0" example-input))))
+  (time (= 175 (count (reachable-group "0" input))))
 
-  (= 2 (count (groups example-input)))
-  (= 213 (count (groups input))))
+  (time (= 2 (count (groups example-input))))
+  (time (= 213 (count (groups input)))))

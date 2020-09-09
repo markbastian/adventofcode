@@ -15,13 +15,15 @@
         :let [k (str hash "-" i)]]
     (knot-hash->binary-string k)))
 
+(def memoized-disk-grid (memoize disk-grid))
+
 (defn used-squares [hash]
-  (let [g (disk-grid hash)]
+  (let [g (memoized-disk-grid hash)]
     ((frequencies (cs/join g)) \1)))
 
 (comment
-  (= 8108 (used-squares "flqrgnkx"))
-  (= 8230 (used-squares "hfdlxzhv")))
+  (time (= 8108 (used-squares "flqrgnkx")))
+  (time (= 8230 (used-squares "hfdlxzhv"))))
 
 (defn neighbors [[i j]]
   (let [u ((juxt inc identity dec identity) i)
@@ -29,7 +31,7 @@
     (map vector u v)))
 
 (defn create-neighbors [hash-str]
-  (let [g (mapv vec (disk-grid hash-str))]
+  (let [g (mapv vec (memoized-disk-grid hash-str))]
     (into {}
           (for [i (range (count g))
                 j (range (count (g i)))
@@ -38,5 +40,11 @@
             [coord (filter (fn [n] (= \1 (get-in g n))) (neighbors coord))]))))
 
 (comment
-  (= 1242 (count (day12/groups (create-neighbors "flqrgnkx"))))
-  (= 1103 (count (day12/groups (create-neighbors "hfdlxzhv")))))
+  (defonce flqrgnkx (create-neighbors "flqrgnkx"))
+
+  (time (= 1242 (count (day12/groups flqrgnkx))))
+
+  (defonce hfdlxzhv (create-neighbors "hfdlxzhv"))
+
+  (time (= 1103 (count (day12/groups hfdlxzhv))))
+  )
