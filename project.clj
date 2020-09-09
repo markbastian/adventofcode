@@ -6,4 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/core.async "1.3.610"]
                  [datascript "1.0.1"]
-                 [org.clojure/data.priority-map "1.0.0"]])
+                 [org.clojure/data.priority-map "1.0.0"]
+
+                 [com.clojure-goes-fast/clj-async-profiler "0.4.1"]
+                 [com.clojure-goes-fast/clj-memory-meter "0.1.3"]])

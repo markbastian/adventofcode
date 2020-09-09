@@ -1,7 +1,8 @@
 (ns adventofcode.year2017.day14
   (:require [adventofcode.year2017.day10 :as day10]
             [adventofcode.year2017.day12 :as day12]
-            [clojure.string :as cs]))
+            [clojure.string :as cs]
+            [clj-async-profiler.core :as prof]))
 
 (defn hex-digit->binary-str [s]
   (let [b (Long/toBinaryString (Long/parseLong (str s) 16))]
@@ -47,4 +48,23 @@
   (defonce hfdlxzhv (create-neighbors "hfdlxzhv"))
 
   (time (= 1103 (count (day12/groups hfdlxzhv))))
+  )
+
+(comment
+  (def server (prof/serve-files 8888))
+
+  (do
+    (prof/start {})
+    (println (count (disk-grid "flqrgnkx")))
+    (prof/stop {}))
+
+  (do
+    (prof/start {})
+    (println (count (memoized-disk-grid "flqrgnkx")))
+    (prof/stop {}))
+
+  (do
+    (prof/start {})
+    (println (count (day12/groups hfdlxzhv)))
+    (prof/stop {}))
   )
