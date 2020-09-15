@@ -19,12 +19,12 @@
 (def memoized-disk-grid (memoize disk-grid))
 
 (defn used-squares [hash]
-  (let [g (memoized-disk-grid hash)]
-    ((frequencies (cs/join g)) \1)))
+  (-> hash memoized-disk-grid cs/join frequencies (get \1)))
 
 (comment
   (time (= 8108 (used-squares "flqrgnkx")))
-  (time (= 8230 (used-squares "hfdlxzhv"))))
+  (time (= 8230 (used-squares "hfdlxzhv")))
+  )
 
 (defn neighbors [[i j]]
   (let [u ((juxt inc identity dec identity) i)
