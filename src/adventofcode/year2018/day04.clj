@@ -2,57 +2,39 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as cs]))
 
-(def input
-  "[1518-11-01 00:00] Guard #10 begins shift
-[1518-11-01 00:05] falls asleep
-[1518-11-01 00:25] wakes up
-[1518-11-01 00:30] falls asleep
-[1518-11-01 00:55] wakes up
-[1518-11-01 23:58] Guard #99 begins shift
-[1518-11-02 00:40] falls asleep
-[1518-11-02 00:50] wakes up
-[1518-11-03 00:05] Guard #10 begins shift
-[1518-11-03 00:24] falls asleep
-[1518-11-03 00:29] wakes up
-[1518-11-04 00:02] Guard #99 begins shift
-[1518-11-04 00:36] falls asleep
-[1518-11-04 00:46] wakes up
-[1518-11-05 00:03] Guard #99 begins shift
-[1518-11-05 00:45] falls asleep
-[1518-11-05 00:55] wakes up")
+(def sample-input (->> "adventofcode/year2018/day04/sample-input.txt" io/resource slurp))
+(def input (->> "adventofcode/year2018/day04/input.txt" io/resource slurp))
 
 (def shift-rgx #"\[(\d{4}-\d{2}-\d{2}) (\d{2}):(\d{2})] Guard #(\d+) begins shift")
 (def sleep-wake-rgx #"\[(\d{4}-\d{2}-\d{2}) (\d{2}):(\d{2})]\s+(.*)")
 
-(defn parse-lines [input]
-  (letfn [(wake-or-sleep [s]
-            (or (cs/includes? s "wakes up") (cs/includes? s "falls asleep")))]
-    (loop [[f & r] input grps []]
-      (if f
-        (let [[_ _ _ _ gno] (re-matches shift-rgx f)
-              [b a] (split-with wake-or-sleep r)
-              x (map (comp
-                       (fn [[_ date hr mm aw]] [date (Integer/parseInt hr) (Integer/parseInt mm) aw])
-                       (partial re-matches sleep-wake-rgx)) b)]
-          (recur a (conj grps
-                         [(Integer/parseInt gno)
-                          (->> x
-                               (partition 2)
-                               (map (fn [[[_ _ s] [_ _ f]]] (range s f))))])))
-        (->> grps
-             (group-by first)
-             (map (fn [[g s]] [g (flatten (map second s))])))))))
+(defn parse-int [s] (Integer/parseInt s))
 
-(defn parse-input [input]
-  (->> input
-       cs/split-lines
-       sort
-       parse-lines))
+(defn wake-or-sleep-even? [s]
+  (or (cs/includes? s "wakes up") (cs/includes? s "falls asleep")))
+
+(defn parse-sleep-wake-line [s]
+  (let [[_ date hr mm aw] (re-matches sleep-wake-rgx s)]
+    [date (parse-int hr) (parse-int mm) aw]))
+
+(defn parse-lines [input]
+  (loop [[f & r] input groups []]
+    (if f
+      (let [[_ _ _ _ guard-number] (re-matches shift-rgx f)
+            [shift-events post] (split-with wake-or-sleep-even? r)
+            parsed (map parse-sleep-wake-line shift-events)]
+        (recur post (conj groups
+                          [(parse-int guard-number)
+                           (->> (partition 2 parsed)
+                                (map (fn [[[_ _ s] [_ _ f]]] (range s f))))])))
+      (letfn [(f [m [g minutes]] (update m g (fn [v] (into v (flatten minutes)))))]
+        (reduce f {} groups)))))
+
+(defn parse-input [input] (->> input cs/split-lines sort parse-lines))
 
 (comment
-  (parse-input input)
-  (->> "adventofcode/year2018/day04/input.txt" io/resource slurp parse-input)
-  )
+  (parse-input sample-input)
+  (parse-input input))
 
 (defn guard-score [[n s]]
   (* n (->> s frequencies (apply max-key second) first)))
@@ -61,8 +43,8 @@
   (->> input parse-input (apply max-key (comp count second)) guard-score))
 
 (comment
-  (time (= 240 (solution input)))
-  (time (= 101262 (->> "adventofcode/year2018/day04/input.txt" io/resource slurp solution))))
+  (time (= 240 (solution sample-input)))
+  (time (= 101262 (solution input))))
 
 (defn solution2 [input]
   (->> input
@@ -75,7 +57,7 @@
        (apply *)))
 
 (comment
-  (time (= 4455 (solution2 input)))
-  (time (= 71976 (->> "adventofcode/year2018/day04/input.txt" io/resource slurp solution2))))
+  (time (= 4455 (solution2 sample-input)))
+  (time (= 71976 (solution2 input))))
 
 
