@@ -10,7 +10,7 @@
 
 (defn parse-int [s] (Integer/parseInt s))
 
-(defn wake-or-sleep-even? [s]
+(defn wake-or-sleep-event? [s]
   (or (cs/includes? s "wakes up") (cs/includes? s "falls asleep")))
 
 (defn parse-sleep-wake-line [s]
@@ -21,7 +21,7 @@
   (loop [[f & r] input groups []]
     (if f
       (let [[_ _ _ _ guard-number] (re-matches shift-rgx f)
-            [shift-events post] (split-with wake-or-sleep-even? r)
+            [shift-events post] (split-with wake-or-sleep-event? r)
             parsed (map parse-sleep-wake-line shift-events)]
         (recur post (conj groups
                           [(parse-int guard-number)
