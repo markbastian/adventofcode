@@ -25,30 +25,34 @@
 (def sleep-wake-rgx #"\[(\d{4}-\d{2}-\d{2}) (\d{2}):(\d{2})]\s+(.*)")
 
 (defn parse-lines [input]
-  (loop [[f & r] input grps []]
-    (if f
-      (let [[_ _ _ _ gno] (re-matches shift-rgx f)
-            [b a] (split-with (fn [s]
-                                (or
-                                  (cs/includes? s "wakes up")
-                                  (cs/includes? s "falls asleep"))) r)
-            x (map (comp
-                     (fn [[_ date hr mm aw]] [date (Integer/parseInt hr) (Integer/parseInt mm) aw])
-                     (partial re-matches sleep-wake-rgx)) b)]
-        (recur a (conj grps
-                       [(Integer/parseInt gno)
-                        (->> x
-                             (partition 2)
-                             (map (fn [[[_ _ s] [_ _ f]]] (range s f))))])))
-      (->> grps
-           (group-by first)
-           (map (fn [[g s]] [g (flatten (map second s))]))))))
+  (letfn [(wake-or-sleep [s]
+            (or (cs/includes? s "wakes up") (cs/includes? s "falls asleep")))]
+    (loop [[f & r] input grps []]
+      (if f
+        (let [[_ _ _ _ gno] (re-matches shift-rgx f)
+              [b a] (split-with wake-or-sleep r)
+              x (map (comp
+                       (fn [[_ date hr mm aw]] [date (Integer/parseInt hr) (Integer/parseInt mm) aw])
+                       (partial re-matches sleep-wake-rgx)) b)]
+          (recur a (conj grps
+                         [(Integer/parseInt gno)
+                          (->> x
+                               (partition 2)
+                               (map (fn [[[_ _ s] [_ _ f]]] (range s f))))])))
+        (->> grps
+             (group-by first)
+             (map (fn [[g s]] [g (flatten (map second s))])))))))
 
 (defn parse-input [input]
   (->> input
        cs/split-lines
        sort
        parse-lines))
+
+(comment
+  (parse-input input)
+  (->> "adventofcode/year2018/day04/input.txt" io/resource slurp parse-input)
+  )
 
 (defn guard-score [[n s]]
   (* n (->> s frequencies (apply max-key second) first)))
@@ -57,10 +61,8 @@
   (->> input parse-input (apply max-key (comp count second)) guard-score))
 
 (comment
-  ;240
-  (solution input)
-  ;101262
-  (->> "adventofcode/year2018/day04/input.txt" io/resource slurp solution))
+  (time (= 240 (solution input)))
+  (time (= 101262 (->> "adventofcode/year2018/day04/input.txt" io/resource slurp solution))))
 
 (defn solution2 [input]
   (->> input
@@ -73,9 +75,7 @@
        (apply *)))
 
 (comment
-  ;4455
-  (solution2 input)
-  ;71976
-  (->> "adventofcode/year2018/day04/input.txt" io/resource slurp solution2))
+  (time (= 4455 (solution2 input)))
+  (time (= 71976 (->> "adventofcode/year2018/day04/input.txt" io/resource slurp solution2))))
 
 
