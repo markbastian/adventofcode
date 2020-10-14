@@ -54,10 +54,10 @@
 (comment
   (->> input input->pts part1)
   ;2906
-  (->> "adventofcode/year2018/day06/input.txt" io/resource slurp input->pts part1))
+  (->> "adventofcode/year2018/day06/input.txt" io/resource slurp input->pts part1 time))
 
 (comment
   ;16
   (->> input input->pts (part2 32))
   ;50530
-  (->> "adventofcode/year2018/day06/input.txt" io/resource slurp input->pts (part2 10000)))
+  (->> "adventofcode/year2018/day06/input.txt" io/resource slurp input->pts (part2 10000) time))
