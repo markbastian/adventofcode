@@ -8,10 +8,12 @@
 ;    B----------- C-----------
 ;                     D-----
 
-(def input "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2")
-
 (defn parse-input [s]
   (edn/read-string (str "[" s "]")))
+
+(def input "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2")
+(def final-input
+  (->> "adventofcode/year2018/day08/input.txt" io/resource slurp))
 
 (defn compute-meta [input]
   (loop [[nc nm & r] input [[a b] & ops :as stack] nil sums []]
@@ -26,8 +28,8 @@
   (->> input compute-meta flatten (reduce +)))
 
 (comment
-  (meta-sum (parse-input input))
-  (->> "adventofcode/year2018/day08/input.txt" io/resource slurp parse-input meta-sum))
+  (time (= 138 (meta-sum (parse-input input))))
+  (time (= 41454 (->> final-input parse-input meta-sum))))
 
 (defn parse-tree [c]
   (let [nc (async/<!! c) nm (async/<!! c)]
@@ -42,11 +44,5 @@
 (defn part2 [m] (reduce + (node-seq m)))
 
 (comment
-  (->> input parse-input async/to-chan parse-tree part2)
-  (->> "adventofcode/year2018/day08/input.txt"
-       io/resource
-       slurp
-       parse-input
-       async/to-chan
-       parse-tree
-       part2))
+  (time (= 66 (->> input parse-input async/to-chan parse-tree part2)))
+  (time (= 25752 (->> final-input parse-input async/to-chan parse-tree part2))))

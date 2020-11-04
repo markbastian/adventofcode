@@ -12,6 +12,8 @@ Step B must be finished before step E can begin.
 Step D must be finished before step E can begin.
 Step F must be finished before step E can begin.")
 
+(def final-input (->> "adventofcode/year2018/day07/input.txt" io/resource slurp))
+
 (def rgx #"Step ([A-Z]) must be finished before step ([A-Z]) can begin\.")
 
 (defn step [{:keys [steps order]}]
@@ -34,10 +36,12 @@ Step F must be finished before step E can begin.")
        :order))
 
 (comment
-  ;"CABDFE"
-  (order input)
-  ;"AHJDBEMNFQUPVXGCTYLWZKSROI"
-  (->> "adventofcode/year2018/day07/input.txt" io/resource slurp order))
+  (->> {:steps (parse input) :order ""}
+       (iterate step)
+       (take-while :steps))
+
+  (time (= "CABDFE" (order input)))
+  (time (= "AHJDBEMNFQUPVXGCTYLWZKSROI" (order final-input))))
 
 (defn job-map [input]
   (letfn [(add-job [m [k v]] (-> m (update k conj v) (update v identity)))]
@@ -88,10 +92,29 @@ Step F must be finished before step E can begin.")
   (count (job-seq fixed-job-cost n-workers input)))
 
 (comment
-  ;15
-  (job-duration 0 2 input)
-  ;1031
-  (->> "adventofcode/year2018/day07/input.txt"
-       io/resource
-       slurp
-       (job-duration 60 5)))
+  (job-map input)
+  (job-seq 0 2 input)
+
+  (let [fixed-job-cost 10
+        n-workers 2
+        input input]
+    (->> {:job-queue (job-map input) :idle-workers (set (range n-workers))}
+         (iterate (partial work-step fixed-job-cost))
+         ;rest
+         ;(map (fn [{:keys [active-jobs]}] (map :job active-jobs)))
+         ;(take-while seq)
+         (take 3)))
+
+  (work-step
+    60
+    '{:job-queue    {"C" ("F" "A"),
+                     "A" ("D" "B"),
+                     "F" ("E"),
+                     "B" ("E"),
+                     "D" ("E"),
+                     "E" nil},
+      :idle-workers #{1},
+      :active-jobs  [{:worker 0, :job "C", :progress 12, :duration 13}]})
+
+  (time (= 15 (job-duration 0 2 input)))
+  (time (= 1031 (job-duration 60 5 final-input))))
