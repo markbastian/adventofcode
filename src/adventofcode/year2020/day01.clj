@@ -5,7 +5,7 @@
 
 (defonce test-input [1721 979 366 299 675 1456])
 
-(defonce input (->> (io/resource "adventofcode/year2020/input.txt")
+(defonce input (->> (io/resource "adventofcode/year2020/day01/input.txt")
                     slurp
                     cs/split-lines
                     (map #(Long/parseLong %))))
