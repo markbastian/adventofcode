@@ -32,9 +32,7 @@
 (def sat (summed-area-table m))
 
 (rect-sum sat [2 1] [4 4])
-
 (rect-sum sat [0 0] [1 1])
-
 (area-sum sat [0 0] 1)
 
 (defn power [serno [x y]]
@@ -42,15 +40,11 @@
         power-level (* rack-id (+ serno (* rack-id y)))]
     (- (rem (quot power-level 100) 10) 5)))
 
-(power 8 [3 5])
-(power 57 [122 79])
-(power 39 [217 196])
-(power 71 [101 153])
-
-(defn power-map [dim serno]
-  (into {}
-        (for [i (map inc (range dim)) j (map inc (range dim))
-              :let [c [i j]]] [c (power serno c)])))
+(comment
+  (= 4 (power 8 [3 5]))
+  (= -5 (power 57 [122 79]))
+  (= 0 (power 39 [217 196]))
+  (= 4 (power 71 [101 153])))
 
 (defn power-grid [serno dim]
   (let [m (make-array Long/TYPE dim dim)]
@@ -58,29 +52,27 @@
       (aset m i j (power serno [i j])))
     (into [] (map vec m))))
 
-(let [g (power-grid 42 300)
-      t (summed-area-map g)]
-  t)
+(defn largest-power-cell [sat dim]
+  (let [grid-power (for [i (range (- 300 dim)) j (range (- 300 dim))]
+                     [[(inc i) (inc j)] (area-sum sat [i j] dim)])]
+    (apply max-key second grid-power)))
 
-(defn largest-power-grid [serno sz]
-  (let [dim 300
-        dim2 (- dim sz)
-        m (into {} (for [i (map inc (range dim)) j (map inc (range dim))
-                         :let [c [i j]]] [c (power serno c)]))
-        powers (for [x0 (map inc (range dim2)) y0 (map inc (range dim2))]
-                 [[x0 y0] (reduce
-                            +
-                            (for [i (range sz) j (range sz)]
-                              (m [(+ x0 i) (+ y0 j)])))])]
+(defn part1 [serno sz]
+  (let [sat (summed-area-table (power-grid serno 300))]
+    (largest-power-cell sat sz)))
+
+(comment
+  (= [[33 45] 29] (part1 18 3))
+  (= [[21 61] 30] (part1 42 3))
+  (= [[243 27] 30] (part1 6303 3)))
+
+(defn part2 [serno]
+  (let [sat (summed-area-table (power-grid serno 300))
+        powers (for [sz (range 300)]
+                 (conj (largest-power-cell sat sz) sz))]
     (apply max-key second powers)))
 
 (comment
-  (largest-power-grid 18 3)
-  (largest-power-grid 42 3)
-  (largest-power-grid 6303 3))
-
-(comment
-  ;This will take forever. Instead consider an "advancing front" from each cell.
-  ;Would another memoizing strategy work?
-  (for [i (map inc (range 300))]
-    [i (largest-power-grid 6303 i)]))
+  (= [[90 269] 113 16] (part2 18))
+  (= [[232 251] 119 12] (part2 42))
+  (= [[284 172] 88 12] (part2 6303)))
