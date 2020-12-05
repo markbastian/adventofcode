@@ -8,5 +8,6 @@
                  [datascript "1.0.1"]
                  [org.clojure/data.priority-map "1.0.0"]
                  [org.clojure/math.combinatorics "0.1.6"]
+                 [instaparse "1.4.10"]
                  [com.clojure-goes-fast/clj-async-profiler "0.4.1"]
                  [com.clojure-goes-fast/clj-memory-meter "0.1.3"]])
