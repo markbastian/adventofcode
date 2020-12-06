@@ -28,13 +28,7 @@
   (time (= 922 (apply max (map seat-hash input))))
 
   (time
-    (= 747 (let [seat-list (set (map seat-hash input))]
-             (some (fn [seat-id]
-                     (when (and
-                             (seat-list (dec seat-id))
-                             (nil? (seat-list seat-id))
-                             (seat-list (inc seat-id)))
-                       seat-id))
-                   (for [row (range 128) seat (range 8)] (+ (* row 8) seat))))))
-
+    (->> (sort (map seat-hash input))
+         (partition 2 1)
+         (some (fn [[lo hi]] (when (= 2 (- hi lo)) (inc lo))))))
   )
