@@ -28,7 +28,8 @@
   (time (= 922 (apply max (map seat-hash input))))
 
   (time
-    (->> (sort (map seat-hash input))
-         (partition 2 1)
-         (some (fn [[lo hi]] (when (= 2 (- hi lo)) (inc lo))))))
+    (= 747
+       (->> (sort (map seat-hash input))
+            (partition 2 1)
+            (some (fn [[lo hi]] (when (= 2 (- hi lo)) (inc lo)))))))
   )
