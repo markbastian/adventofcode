@@ -19,9 +19,6 @@
        (map (comp #(Long/parseLong % 2) str/join))
        (zipmap [:gamma-rate :epsilon-rate])))
 
-(defn score [f input]
-  (->> input f vals (apply *)))
-
 (defn step [{[mf ms :as m] :m :keys [goal col] :as x}]
   (if ms
     (let [[mfb lfb] (bitsort (map #(get % col) m))
@@ -35,6 +32,9 @@
     (letfn [(process [v] (->> v (iterate step) (map :rating) (filter identity) first))]
       {:oxygen-generator-rating (process seed)
        :co2-scrubber-rating     (process (assoc seed :goal :lfb))})))
+
+(defn score [f input]
+  (->> input f vals (apply *)))
 
 (comment
   (power-consumption sample-input)
