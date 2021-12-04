@@ -32,23 +32,18 @@
 (def sample-input (parse-input "adventofcode/year2021/day04/sample-input.txt"))
 (def input (parse-input "adventofcode/year2021/day04/input.txt"))
 
-(defn row-marked [marked-board]
-  (some (partial every? #{:X}) marked-board))
-
-(defn col-marked [marked-board]
-  (row-marked (apply map vector marked-board)))
-
-(defn maybe-win [{:keys [marked-board] :as board}]
+(defn maybe-win [{:keys [marked-board] :as board} [row col]]
   (cond-> board
-          (or (row-marked marked-board) (col-marked marked-board))
+          (or (every? #{:X} (marked-board row))
+              (every? (fn [row] (#{:X} (row col))) marked-board))
           (assoc :win true)))
 
 (defn mark-board [{:keys [reverse-index] :as b} value]
-  (if-some [[i j] (reverse-index value)]
+  (if-some [[i j :as c] (reverse-index value)]
     (-> b
         (assoc-in [:marked-board i j] :X)
         (update :marker-seq (comp vec conj) value)
-        maybe-win)
+        (maybe-win c))
     b))
 
 (defn step [{[n & r] :calls
