@@ -61,23 +61,14 @@
 (defn score [{:keys [marker-seq marked-board]}]
   (* (peek marker-seq) (apply + (remove #{:X} (flatten marked-board)))))
 
+(defn process [input seq-filter which-winner]
+  (->> input (iterate step) seq-filter first :winners which-winner score))
+
 (defn part-1-score [input]
-  (->> input
-       (iterate step)
-       (filter (comp seq :winners))
-       first
-       :winners
-       first
-       score))
+  (process input (partial filter (comp seq :winners)) first))
 
 (defn part-2-score [input]
-  (->> input
-       (iterate step)
-       (remove (comp seq :boards))
-       first
-       :winners
-       last
-       score))
+  (process input (partial remove (comp seq :boards)) last))
 
 (comment
   ;; Part 1
