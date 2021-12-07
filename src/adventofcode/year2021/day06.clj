@@ -4,22 +4,6 @@
 (def sample-input (iu/read-as-array "adventofcode/year2021/day06/sample-input.txt"))
 (def input (iu/read-as-array "adventofcode/year2021/day06/input.txt"))
 
-;; Naive solution
-(defn step [input]
-  (let [s (mapv dec input)
-        spawns (repeat (count (filter neg? s)) 8)]
-    (into (mapv (fn [v] (if (neg? v) 6 v)) s) spawns)))
-
-(defn part1 [input days]
-  (let [f (frequencies input)
-        x (->> (iterate step [5])
-               (map count)
-               (drop days)
-               (take 5)
-               (zipmap [5 4 3 2 1]))]
-    (->> (map (fn [[k v]] (* v (f k 0))) x)
-         (reduce +))))
-
 ;; Efficient solution
 (defn fast-step [input]
   (let [{new-gen -1 :as m} (update-keys input dec)]
@@ -38,12 +22,23 @@
        vals
        (reduce +)))
 
-(comment
-  (= 5934 (part1 sample-input 80))
-  (= 374927 (part1 input 80))
+;;;Another version that is even faster and more concise
+(defn fast-solution1 [input days]
+  (->> (frequencies input)
+       (reduce (fn [v [n f]] (assoc v n f)) (vec (repeat 9 0)))
+       (iterate (fn [[f :as v]] (update (conj (subvec v 1) f) 6 + f)))
+       (drop days)
+       first
+       (reduce +)))
 
+(comment
   (= 5934 (fast-solution sample-input 80))
   (= 374927 (fast-solution input 80))
   (= 26984457539 (fast-solution sample-input 256))
   (= 1687617803407 (fast-solution input 256))
+
+  (= 5934 (fast-solution1 sample-input 80))
+  (= 374927 (fast-solution1 input 80))
+  (= 26984457539 (fast-solution1 sample-input 256))
+  (= 1687617803407 (fast-solution1 input 256))
   )
