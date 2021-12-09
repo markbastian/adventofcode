@@ -1,7 +1,8 @@
 (ns adventofcode.year2021.day08
   (:require [adventofcode.input-util :as iu]
             [clojure.string :as str]
-            [clojure.math.combinatorics :as combo]))
+            [clojure.math.combinatorics :as combo])
+  (:import (clojure.lang PersistentQueue)))
 
 (defn parse-line [line]
   (let [[a b] (str/split line #"\s*\|\s+")
@@ -71,3 +72,11 @@
   (= 61229 (part2 sample-input))
   (= 1084606 (part2 input))
   )
+
+;; Future work ;;
+(def queue PersistentQueue/EMPTY)
+
+{:from    (set "abcdefg")
+ :to      (set "abcdefg")
+ :mapping {}
+ :x       (partition-by count (sort-by count target))}
