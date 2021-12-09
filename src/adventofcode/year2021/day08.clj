@@ -87,15 +87,37 @@
 
 (defn step [q]
   (let [{[f & sr] :src [t & tr] :tgt :keys [mapping] :as n} (peek q)
-        t' (combo/permutations (remove mapping t))
+        x (set (vals mapping))
+        t' (combo/permutations (remove x t))
         neighbors (map (partial zipmap (remove mapping f)) t')
         n (-> n (assoc :src sr) (assoc :tgt tr))]
     (into (pop q) (map (fn [neighbor] (update n :mapping merge neighbor)) neighbors))))
 
+(defn solution [line m]
+  (let [[ni no] (rewire line m)]
+    (when (= target ni)
+      {:mapping m
+       :rhs     (parse-long (str/join (map str (map decoder no))))})))
+
+(defn fast-rewire-line [line]
+  (->> {:mapping {}
+        :src     (prep (first line))
+        :tgt     (prep target)}
+       (conj queue)
+       (iterate step)
+       (map (comp :mapping first))
+       (take-while identity)
+       (filter (comp #{7} count))
+       (some (partial solution line))))
+
+(defn fast-part2 [input]
+  (->> input
+       (map (comp :rhs fast-rewire-line))
+       (reduce +)))
+
 (comment
-  (take 5
-        (iterate step (conj
-                        queue
-                        {:mapping {}
-                         :src     (prep (first test-input))
-                         :tgt     (prep target)}))))
+  (= 26 (part1 sample-input))
+  (= 539 (part1 input))
+  (= 61229 (fast-part2 sample-input))
+  (= 1084606 (fast-part2 input))
+  )
