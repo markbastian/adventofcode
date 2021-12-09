@@ -76,7 +76,26 @@
 ;; Future work ;;
 (def queue PersistentQueue/EMPTY)
 
-{:from    (set "abcdefg")
- :to      (set "abcdefg")
- :mapping {}
- :x       (partition-by count (sort-by count target))}
+(defn prep [i]
+  (->> (sort-by count i)
+       (partition-by count)
+       (map (fn [m] (reduce into #{} m)))
+       frequencies
+       keys
+       (sort-by count)
+       vec))
+
+(defn step [q]
+  (let [{[f & sr] :src [t & tr] :tgt :keys [mapping] :as n} (peek q)
+        t' (combo/permutations (remove mapping t))
+        neighbors (map (partial zipmap (remove mapping f)) t')
+        n (-> n (assoc :src sr) (assoc :tgt tr))]
+    (into (pop q) (map (fn [neighbor] (update n :mapping merge neighbor)) neighbors))))
+
+(comment
+  (take 5
+        (iterate step (conj
+                        queue
+                        {:mapping {}
+                         :src     (prep (first test-input))
+                         :tgt     (prep target)}))))
