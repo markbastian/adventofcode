@@ -8,6 +8,7 @@
                  [org.clojure/data.csv "1.0.0"]
                  [org.clojure/data.json "2.4.0"]
                  [org.clojure/core.logic "1.0.0"]
+                 [org.clojure/math.combinatorics "0.1.6"]
                  [datascript "1.3.2"]
                  [org.clojure/data.priority-map "1.1.0"]
                  [org.clojure/math.combinatorics "0.1.6"]
