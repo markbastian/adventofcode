@@ -118,6 +118,6 @@
 (comment
   (= 26 (part1 sample-input))
   (= 539 (part1 input))
-  (= 61229 (fast-part2 sample-input))
-  (= 1084606 (fast-part2 input))
+  (time (= 61229 (fast-part2 sample-input)))
+  (time (= 1084606 (fast-part2 input)))
   )
