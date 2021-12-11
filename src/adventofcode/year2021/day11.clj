@@ -21,9 +21,8 @@
 
 (defn flash-step [{:keys [grid flashed] :as state}]
   (let [new-flashes (for [[coord energy] grid
-                          :when (and
-                                  (not (flashed coord))
-                                  (> energy 9))]
+                          :when (> energy 9)
+                          :when (not (flashed coord))]
                       coord)
         spillover (->> (mapcat moore-neigbors new-flashes)
                        (filter grid)
@@ -33,10 +32,13 @@
         (update :flashed into new-flashes))))
 
 (defn propagate-flashes [state]
-  (->> state
-       (iterate flash-step)
-       (partition 2 1)
-       (some (fn [[a b]] (when (= a b) a)))))
+  (letfn [(solution [[last-step next-step]]
+            (when (= last-step next-step)
+              last-step))]
+    (->> state
+         (iterate flash-step)
+         (partition 2 1)
+         (some solution))))
 
 (defn step [state]
   (-> state
@@ -67,5 +69,5 @@
   (= 1656 (part1 sample-input))
   (= 1723 (part1 input))
   (= 195 (part2 sample-input))
-  (= 327 (part2 input))
+  (= 327 (time (part2 input)))
   )
