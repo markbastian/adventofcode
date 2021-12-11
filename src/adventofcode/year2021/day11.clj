@@ -69,5 +69,5 @@
   (= 1656 (part1 sample-input))
   (= 1723 (part1 input))
   (= 195 (part2 sample-input))
-  (= 327 (time (part2 input)))
+  (= 327 (part2 input))
   )
