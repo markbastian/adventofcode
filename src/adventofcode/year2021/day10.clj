@@ -1,8 +1,8 @@
 (ns adventofcode.year2021.day10
   (:require [adventofcode.input-util :as iu]))
 
-(def sample-input (iu/read-as-strings "adventofcode/year2021/day09/sample-input.txt"))
-(def input (iu/read-as-strings "adventofcode/year2021/day09/input.txt"))
+(def sample-input (iu/read-as-strings "adventofcode/year2021/day10/sample-input.txt"))
+(def input (iu/read-as-strings "adventofcode/year2021/day10/input.txt"))
 
 (def o->c {\< \> \{ \} \[ \] \( \)})
 (def c->o (zipmap (vals o->c) (keys o->c)))
