@@ -20,37 +20,46 @@
     (map vector i j)))
 
 (defn flash-step [{:keys [grid flashed] :as state}]
-  (let [new-flashes (->> (for [[coord energy] grid :when (> energy 9)] coord)
-                         (remove flashed))
-        spill (->> (mapcat moore-neigbors new-flashes)
-                   (filter grid)
-                   frequencies)]
+  (let [new-flashes (for [[coord energy] grid
+                          :when (and
+                                  (not (flashed coord))
+                                  (> energy 9))]
+                      coord)
+        spillover (->> (mapcat moore-neigbors new-flashes)
+                       (filter grid)
+                       frequencies)]
     (-> state
-        (update :grid #(merge-with + spill %))
+        (update :grid #(merge-with + spillover %))
         (update :flashed into new-flashes))))
 
-(defn step [state]
-  (let [{:keys [flashed] :as state} (->> (update state :grid update-vals inc)
-                                         (iterate flash-step)
-                                         (partition 2 1)
-                                         (some (fn [[a b]] (when (= a b) a))))]
-    (-> state
-        (update :grid update-vals (fn [v] (if (> v 9) 0 v)))
-        (update :flashed empty)
-        (assoc :num-flashed (count flashed)))))
+(defn propagate-flashes [state]
+  (->> state
+       (iterate flash-step)
+       (partition 2 1)
+       (some (fn [[a b]] (when (= a b) a)))))
 
-(defn part1 [input]
+(defn step [state]
+  (-> state
+      (update :grid update-vals inc)
+      (update :flashed empty)
+      propagate-flashes
+      (update :grid update-vals (fn [v] (if (> v 9) 0 v)))))
+
+(defn flash-count-seq [input]
   (->> {:grid input :flashed #{}}
        (iterate step)
+       (map (comp count :flashed))))
+
+(defn part1 [input]
+  (->> input
+       flash-count-seq
        rest
        (take 100)
-       (map :num-flashed)
        (reduce +)))
 
 (defn part2 [input]
-  (->> {:grid input :flashed #{}}
-       (iterate step)
-       (map :num-flashed)
+  (->> input
+       flash-count-seq
        (take-while (complement #{(count input)}))
        count))
 
