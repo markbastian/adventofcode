@@ -17,18 +17,20 @@
 (def input (parse-input "adventofcode/year2021/day12/input.txt"))
 
 (defn step [{:keys [incomplete-paths neighbors-fn filter-fn] :as state}]
-  (let [new-paths (for [[path visited] incomplete-paths
-                        :let [current (peek path)]
-                        neighbor (neighbors-fn current)
-                        :when (filter-fn visited neighbor)]
-                    [(conj path neighbor)
-                     (cond-> visited
-                             (re-matches #"[a-z]+" neighbor)
-                             (update neighbor (fnil inc 0)))])
-        {complete true incomplete false} (group-by (fn [[path]] (= "end" (peek path))) new-paths)]
-    (-> state
-        (assoc :incomplete-paths incomplete)
-        (update :complete-paths into (map first complete)))))
+  (if-some [[path visited] (peek incomplete-paths)]
+    (letfn [(path-state [[path]] (if (= "end" (peek path)) :complete :incomplete))]
+      (let [paths (->> (neighbors-fn (peek path))
+                       (filter (partial filter-fn visited))
+                       (map (fn [neighbor]
+                              [(conj path neighbor)
+                               (cond-> visited
+                                       (re-matches #"[a-z]+" neighbor)
+                                       (update neighbor (fnil inc 0)))]))
+                       (group-by path-state))]
+        (-> state
+            (update :incomplete-paths (fn [p] (into (pop p) (:incomplete paths))))
+            (update :complete-paths into (map first (:complete paths))))))
+    state))
 
 (defn cave-paths [input filter-fn]
   (->> {:incomplete-paths [[["start"] {}]]
