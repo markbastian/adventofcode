@@ -88,12 +88,6 @@
 (def dijkstra-search (comp recover-path dijkstra-terminus))
 (def A-star-search (comp recover-path A-star-terminus))
 
-(defn euclidian-distance
-  "Straight line distance between points."
-  [a b]
-  (let [u (map - a b)]
-    (Math/sqrt (reduce + (map * u u)))))
-
 (defn solve-path [input]
   (let [w (dec (count input))
         h (dec (count (input 0)))
@@ -104,13 +98,18 @@
         solution (dijkstra-search config)]
     (reduce + (map #(get-in input %) (rest solution)))))
 
+(defn manhattan-distance [a b]
+  (reduce + (map (comp #(Math/abs ^long %) -) a b)))
+
 (defn solve-path-A* [input]
-  (let [w (dec (count input))
+  (let [avg (let [v (flatten input)]
+              (double (/ (apply + v) (count v))))
+        w (dec (count input))
         h (dec (count (input 0)))
         config {:start        [0 0]
                 :goal         [w h]
                 :neighbors-fn (partial von-neumann-neighbors input)
-                :heuristic-fn (fn [goal to] (* 2 (euclidian-distance goal to)))
+                :heuristic-fn (fn [goal to] (* avg (manhattan-distance goal to)))
                 :cost-fn      (fn [_from to] (get-in input to))}
         solution (A-star-search config)]
     (reduce + (map #(get-in input %) (rest solution)))))
@@ -129,12 +128,13 @@
   (= 40 (solve-path sample-input))
   (= 537 (solve-path input))
   (= 315 (solve-path (expand-input sample-input)))
-  (= 2881 (solve-path (expand-input input)))
+  (= 2881 (time (solve-path (expand-input input))))
 
   ;; Unfortunately dialing up the power of the heuristic leads to wrong answers
   ;; that are very close to the right one. I need a better heuristic.
   (= 40 (solve-path-A* sample-input))
   (= 537 (solve-path-A* input))
   (= 315 (solve-path-A* (expand-input sample-input)))
-  (= 2881 (solve-path-A* (expand-input input)))
+  ; 10X faster, but not min-cost
+  (= 2881 (time (solve-path-A* (expand-input input))))
   )
