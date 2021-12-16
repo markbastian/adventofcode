@@ -1,14 +1,9 @@
 (ns adventofcode.year2021.day15
   (:require [adventofcode.input-util :as iu]
-            [clojure.data.priority-map :refer [priority-map]]
-            [clojure.pprint :as pp]))
+            [clojure.data.priority-map :refer [priority-map]]))
 
-(defn parse [s]
-  (->> (iu/read-as-strings s)
-       (mapv (fn [s] (mapv (fn [c] (- (int c) (int \0))) s)))))
-
-(def sample-input (parse "adventofcode/year2021/day15/sample-input.txt"))
-(def input (parse "adventofcode/year2021/day15/input.txt"))
+(def sample-input (iu/read-as-grid "adventofcode/year2021/day15/sample-input.txt"))
+(def input (iu/read-as-grid "adventofcode/year2021/day15/input.txt"))
 
 ;; Note - Code lifted from my own planning library at
 ;; https://github.com/markbastian/planning/blob/master/src/main/cljc/planning/core.cljc

@@ -8,3 +8,7 @@
 
 (defn read-as-strings [res]
   (->> (io/resource res) slurp str/split-lines))
+
+(defn read-as-grid [res]
+  (->> (read-as-strings res)
+       (mapv (fn [s] (mapv (fn [c] (- (int c) (int \0))) s)))))
