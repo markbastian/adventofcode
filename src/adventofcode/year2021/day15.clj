@@ -64,52 +64,29 @@
         (update :costs into costs)
         (update-visited current-state (map first costs)))))
 
-(defn dijkstra-step [{:keys [frontier] :as m}]
-  (let [[current-state] (peek frontier)
-        costs (neighbors-with-costs m)]
-    (-> m
-        (update-frontier costs)
-        (update :costs into costs)
-        (update-visited current-state (map first costs)))))
-
-(def dijkstra-seq (search-seq dijkstra-step))
 (def A-star-seq (search-seq A-star-step))
 
 (defn find-goal-state [search-seq]
   (first (filter (fn [{:keys [goal visited]}] (visited goal)) search-seq)))
 
-(def dijkstra-terminus (comp find-goal-state dijkstra-seq))
 (def A-star-terminus (comp find-goal-state A-star-seq))
 
 (defn recover-path [{:keys [goal visited]}]
   (when-some [visited-goal (-> visited keys set (get goal))]
     (vec (reverse (take-while some? (iterate visited visited-goal))))))
 
-(def dijkstra-search (comp recover-path dijkstra-terminus))
 (def A-star-search (comp recover-path A-star-terminus))
-
-(defn solve-path [input]
-  (let [w (dec (count input))
-        h (dec (count (input 0)))
-        config {:start        [0 0]
-                :goal         [w h]
-                :neighbors-fn (partial von-neumann-neighbors input)
-                :cost-fn      (fn [_from to] (get-in input to))}
-        solution (dijkstra-search config)]
-    (reduce + (map #(get-in input %) (rest solution)))))
 
 (defn manhattan-distance [a b]
   (reduce + (map (comp #(Math/abs ^long %) -) a b)))
 
 (defn solve-path-A* [input]
-  (let [avg (let [v (flatten input)]
-              (double (/ (apply + v) (count v))))
-        w (dec (count input))
+  (let [w (dec (count input))
         h (dec (count (input 0)))
         config {:start        [0 0]
                 :goal         [w h]
                 :neighbors-fn (partial von-neumann-neighbors input)
-                :heuristic-fn (fn [goal to] (* avg (manhattan-distance goal to)))
+                :heuristic-fn manhattan-distance
                 :cost-fn      (fn [_from to] (get-in input to))}
         solution (A-star-search config)]
     (reduce + (map #(get-in input %) (rest solution)))))
@@ -125,11 +102,7 @@
       (mapv (fn [row] (mapv wrap row)) m))))
 
 (comment
-  (= 40 (solve-path sample-input))
-  (= 537 (solve-path input))
-  (= 315 (solve-path (expand-input sample-input)))
-  (= 2881 (time (solve-path (expand-input input))))
-
+  (time (count (expand-input input)))
   ;; Unfortunately dialing up the power of the heuristic leads to wrong answers
   ;; that are very close to the right one. I need a better heuristic.
   (= 40 (solve-path-A* sample-input))
