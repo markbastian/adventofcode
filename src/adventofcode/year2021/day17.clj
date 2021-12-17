@@ -62,50 +62,31 @@
       (update state :visited into neighbors)
       trajectories)))
 
-(defn solve-step2 [{:keys [frontier visited] :as state}]
-  (if-some [{:keys [velocity] :as ic} (peek frontier)]
-    (let [trajectory (compute-trajectory ic)
-          state (-> state
-                    (update :frontier pop)
-                    (update :visited conj velocity))]
-      (if (= :hit (categorize-solution (last trajectory)))
-        (let [neighbors (for [n (moore-neigbors velocity)
-                              nn (moore-neigbors n)
-                              :when (not (visited nn))]
-                          nn)]
-          (-> state
-              (update :hits assoc velocity (y-bounds trajectory))
-              (update :frontier into (map (fn [v] (assoc ic :velocity v)) neighbors))))
-        state))
-    state))
-
-
 (comment
   (let [bounds input
         [dx dy] (center bounds)
-        c [(/ dx 10) (- dy)]]
+        c [(quot dx 10) (- dy)]]
     (->> {:best-ic     {:position [0 0]
                         :velocity c
                         :bounds   bounds}
           :visited     #{c}
           :best-height ##-Inf}
          (iterate solve-step)
-         (map :best-height)
          (partition 2 1)
-         (drop-while (fn [[a b]] (not= a b)))
+         (drop-while (fn [[{a :best-height} {b :best-height}]] (not= a b)))
          ffirst
          ))
 
-  (let [bounds sample-input
-        c (center bounds)]
-    (->> {:frontier [{:position [0 0]
-                      :velocity [6 9]
-                      :bounds   bounds}]
-          :visited  #{}}
-         (iterate solve-step2)
-         (take 100)
-         (map (comp count :hits))
-         ))
+  (count
+    (let [[[min-x max-x] [min-y max-y] :as bounds] input
+          max-y-vel max-x]
+      (for [vx (map inc (range max-x))
+            vy (range min-y (inc 135))
+            :let [trajectory (compute-trajectory {:position [0 0]
+                                                  :velocity [vx vy]
+                                                  :bounds   bounds})]
+            :when (= :hit (categorize-solution (last trajectory)))]
+        [vx vy])))
   )
 
 
