@@ -43,6 +43,7 @@
           :when (= :hit (categorize-solution (last trajectory)))
           :let [[min-y max-y] (y-bounds trajectory)]]
       [vx vy max-y])))
+
 (comment
   (= 45 (->> (all-solutions sample-input) (sort-by (comp - last)) first last))
   (= 9180 (->> (all-solutions input) (sort-by (comp - last)) first last))
