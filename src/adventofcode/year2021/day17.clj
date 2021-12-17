@@ -62,31 +62,47 @@
       (update state :visited into neighbors)
       trajectories)))
 
-(comment
-  (let [bounds input
-        [dx dy] (center bounds)
-        c [(quot dx 10) (- dy)]]
+(defn optimal-ic [guess bounds]
+  (select-keys
     (->> {:best-ic     {:position [0 0]
-                        :velocity c
+                        :velocity guess
                         :bounds   bounds}
-          :visited     #{c}
+          :visited     #{guess}
           :best-height ##-Inf}
          (iterate solve-step)
          (partition 2 1)
          (drop-while (fn [[{a :best-height} {b :best-height}]] (not= a b)))
-         ffirst
-         ))
+         ffirst)
+    [:best-ic :best-height]))
 
+(defn all-possible-count [input max-y]
   (count
-    (let [[[min-x max-x] [min-y max-y] :as bounds] input
-          max-y-vel max-x]
+    (let [[[min-x max-x] [min-y _max-y] :as bounds] input]
       (for [vx (map inc (range max-x))
-            vy (range min-y (inc 135))
+            vy (range min-y (inc max-y))
             :let [trajectory (compute-trajectory {:position [0 0]
                                                   :velocity [vx vy]
                                                   :bounds   bounds})]
             :when (= :hit (categorize-solution (last trajectory)))]
-        [vx vy])))
+        [vx vy]))))
+
+(comment
+  ;45 [7 9]
+  (let [bounds sample-input
+        [dx dy] (center bounds)
+        c [(quot dx 3) (- dy)]]
+    (optimal-ic c bounds))
+
+  ;9180 [19 135]
+  (let [bounds input
+        [dx dy] (center bounds)
+        c [(quot dx 10) (- dy)]]
+    (optimal-ic c bounds))
+
+  ; 112
+  (all-possible-count sample-input 9)
+  ; 3767
+  (all-possible-count input 135)
   )
 
 
