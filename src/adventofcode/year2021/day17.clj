@@ -33,76 +33,22 @@
     [Double/POSITIVE_INFINITY Double/NEGATIVE_INFINITY]
     trajectory))
 
-(defn moore-neigbors [[x y]]
-  (let [i ((juxt inc inc identity dec dec dec identity inc) x)
-        j ((juxt identity inc inc inc identity dec dec dec) y)]
-    (map vector i j)))
-
-(defn center [[[x-min x-max] [y-min y-max]]]
-  [(quot (+ x-min x-max) 2)
-   (quot (+ y-min y-max) 2)])
-
-(defn solve-step [{:keys [best-ic visited best-height] :as state}]
-  (let [neighbors (->> best-ic
-                       :velocity
-                       moore-neigbors
-                       (remove visited))
-        trajectories (for [v neighbors
-                           :let [ic (assoc best-ic :velocity v)
-                                 trajectory (compute-trajectory ic)
-                                 solution-type (categorize-solution (last trajectory))]
-                           :when (= :hit solution-type)
-                           :let [[min-y max-y] (y-bounds trajectory)]]
-                       {:ic ic :max-y max-y})]
-    (reduce
-      (fn [{:keys [best-height] :as state} {:keys [ic max-y]}]
-        (if (> max-y best-height)
-          (assoc state :best-ic ic :best-height max-y)
-          state))
-      (update state :visited into neighbors)
-      trajectories)))
-
-(defn optimal-ic [guess bounds]
-  (select-keys
-    (->> {:best-ic     {:position [0 0]
-                        :velocity guess
-                        :bounds   bounds}
-          :visited     #{guess}
-          :best-height ##-Inf}
-         (iterate solve-step)
-         (partition 2 1)
-         (drop-while (fn [[{a :best-height} {b :best-height}]] (not= a b)))
-         ffirst)
-    [:best-ic :best-height]))
-
-(defn all-possible-count [input max-y]
-  (count
-    (let [[[min-x max-x] [min-y _max-y] :as bounds] input]
-      (for [vx (map inc (range max-x))
-            vy (range min-y (inc max-y))
-            :let [trajectory (compute-trajectory {:position [0 0]
-                                                  :velocity [vx vy]
-                                                  :bounds   bounds})]
-            :when (= :hit (categorize-solution (last trajectory)))]
-        [vx vy]))))
-
+(defn all-solutions [input]
+  (let [[[_min-x max-x] [min-y _max-y] :as bounds] input]
+    (for [vx (map inc (range max-x))
+          vy (range min-y (- min-y))
+          :let [trajectory (compute-trajectory {:position [0 0]
+                                                :velocity [vx vy]
+                                                :bounds   bounds})]
+          :when (= :hit (categorize-solution (last trajectory)))
+          :let [[min-y max-y] (y-bounds trajectory)]]
+      [vx vy max-y])))
 (comment
-  ;45 [7 9]
-  (let [bounds sample-input
-        [dx dy] (center bounds)
-        c [(quot dx 3) (- dy)]]
-    (optimal-ic c bounds))
+  (= 45 (->> (all-solutions sample-input) (sort-by (comp - last)) first last))
+  (= 9180 (->> (all-solutions input) (sort-by (comp - last)) first last))
 
-  ;9180 [19 135]
-  (let [bounds input
-        [dx dy] (center bounds)
-        c [(quot dx 10) (- dy)]]
-    (optimal-ic c bounds))
-
-  ; 112
-  (all-possible-count sample-input 9)
-  ; 3767
-  (all-possible-count input 135)
+  (= 112 (count (all-solutions sample-input)))
+  (time (= 3767 (count (all-solutions input))))
   )
 
 
