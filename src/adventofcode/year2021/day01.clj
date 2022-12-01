@@ -1,7 +1,5 @@
 (ns adventofcode.year2021.day01
-  (:require [clojure.java.io :as io]
-            [clojure.edn :as edn]
-            [adventofcode.input-util :as iu]))
+  (:require [adventofcode.input-util :as iu]))
 
 (def sample-input [199 200 208 210 200 207 240 269 260 263])
 (defonce input (iu/read-as-array "adventofcode/year2021/day01/input.txt"))
