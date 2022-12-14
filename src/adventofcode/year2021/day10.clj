@@ -23,6 +23,14 @@
          :completion (->> stack reverse (map o->c))}
         :balanced!))))
 
+(comment
+  ;;Incomplete
+  (process "[({(<(())[]>[[{[]{<()<>>")
+  (process "[[<[([]))<([[{}[[()]]]")
+  ;;Balanced
+  (process "[<>({}){}[([])<>]]")
+  (process "(((((((((())))))))))"))
+
 (defn part1 [input]
   (let [costs {\) 3 \] 57 \} 1197 \> 25137}]
     (->> input
